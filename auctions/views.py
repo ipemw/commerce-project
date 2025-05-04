@@ -38,46 +38,85 @@ def closeAuction(request, id):
     })
 
 def addBid(request, id):
-    newBid = float(request.POST['newBid'])
     listingData = Listing.objects.get(pk=id)
+
+    # Prevent bidding on closed auctions
+    if not listingData.isActive:
+        return render(request, "auctions/listing.html", {
+            "listing": listingData,
+            "message": "This auction is already closed.",
+            "updated": False,
+            "isListingInWatchlist": request.user in listingData.watchlist.all(),
+            "allComments": Comment.objects.filter(listing=listingData),
+            "isOwner": request.user.username == listingData.owner.username,
+        })
+
+    try:
+        newBid = float(request.POST['newBid'])
+    except:
+        return render(request, "auctions/listing.html", {
+            "listing": listingData,
+            "message": "Invalid bid format.",
+            "updated": False,
+            "isListingInWatchlist": request.user in listingData.watchlist.all(),
+            "allComments": Comment.objects.filter(listing=listingData),
+            "isOwner": request.user.username == listingData.owner.username,
+        })
+
     isListingInWatchlist = request.user in listingData.watchlist.all()
     allComments = Comment.objects.filter(listing=listingData)
     isOwner = request.user.username == listingData.owner.username
-    if float(newBid) > listingData.price.bid:
+
+    if newBid > listingData.price.bid:
         updateBid = Bid(user=request.user, bid=newBid)
         updateBid.save()
         listingData.price = updateBid
         listingData.save()
-        return render(request,"auctions/listing.html", {
-            "listing" : listingData,
-            "message" : "Bid was updated Successfully!",
-            "updated" : True,
-            "isListingInWatchlist" : isListingInWatchlist,
-            "allComments" : allComments,
-            "isOwner" : isOwner,
+        return render(request, "auctions/listing.html", {
+            "listing": listingData,
+            "message": "Bid was updated successfully!",
+            "updated": True,
+            "isListingInWatchlist": isListingInWatchlist,
+            "allComments": allComments,
+            "isOwner": isOwner,
         })
     else:
-        return render(request,"auctions/listing.html", {
-            "listing" : listingData,
-            "message" : "Bid was updated Failed!",
-            "update" : False,
-            "isListingInWatchlist" : isListingInWatchlist,
-            "allComments" : allComments
-            })
+        return render(request, "auctions/listing.html", {
+            "listing": listingData,
+            "message": "Your bid must be higher than the current price.",
+            "updated": False,
+            "isListingInWatchlist": isListingInWatchlist,
+            "allComments": allComments,
+            "isOwner": isOwner,
+        })
 
 
 def addComment(request, id):
-    currentUser = request.user
     listingData = Listing.objects.get(pk=id)
-    message = request.POST['newComment']
-    
+
+    # Prevent commenting on closed auctions
+    if not listingData.isActive:
+        return render(request, "auctions/listing.html", {
+            "listing": listingData,
+            "message": "This auction is closed. Comments are not allowed.",
+            "updated": False,
+            "isListingInWatchlist": request.user in listingData.watchlist.all(),
+            "allComments": Comment.objects.filter(listing=listingData),
+            "isOwner": request.user.username == listingData.owner.username,
+        })
+
+    currentUser = request.user
+    message = request.POST["newComment"]
+
     newComment = Comment(
         author=currentUser,
         listing=listingData,
         message=message
     )
     newComment.save()
-    return HttpResponseRedirect(reverse("listing",args=(id, )))
+
+    return HttpResponseRedirect(reverse("listing", args=(id,)))
+
     
 def displayWatchlist(request):
     currentUser = request.user

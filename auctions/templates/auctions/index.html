@@ -5,16 +5,17 @@
     <form action="{% url 'displayCategory' %}" method="POST" class="my-3">
         {% csrf_token %}
         <label for="category">Choose a category</label>
-            <select name="category" id="category">
-                {% for cat in categories %}
-                    <option value="{{ cat }}">{{ cat }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-warning">Select</button>
+        <select name="category" id="category">
+            {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-warning">Select</button>
     </form>
-    <div class="row mx-3">
+
+    <div class="row mx-2">
         {% for listing in listings %}
-        <div class="card" style="width: 18rem;">
+        <div class="card mx-3 mb-4 shadow-sm" style="width: 18rem;">
             <img src="{{ listing.imageUrl }}" class="card-img-top" alt="{{ listing.title }}">
             <div class="card-body">
                 <h5 class="card-title">{{ listing.title }}</h5>
@@ -24,4 +25,5 @@
         </div>
         {% endfor %}
     </div>
+    
 {% endblock %}
