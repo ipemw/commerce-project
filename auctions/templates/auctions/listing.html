@@ -35,7 +35,7 @@
                     <button type="submit" class="btn btn-danger">Remove From Watchlist</button>
                 </form>
             {% else %}
-                <form action="{% url 'addWatchlist' id=listing.id %}" method="post">
+                <form action="{ % url 'addWatchlist' id=listing.id %}" method="post">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-success">Add To Watchlist</button>
                 </form>
